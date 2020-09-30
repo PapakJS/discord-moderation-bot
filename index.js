@@ -18,7 +18,7 @@ bot.on("message", async message=>{
   let cmd = MessageArr[0];
   let args = MessageArr.slice(1);
   
-  if(cmd === "!nick") { //change nickname command
+  if(cmd === `${bot.prefix}setnickname`) { //change nickname command
     if(!message.member.hasPermission("ADMINISTRATOR")) return message.channel.send('You dont have permission to perform this command!');
   if (message.mentions.users.size < 1) return message.reply('You must ping someone to change his username :x:')
   let user = message.guild.member(message.mentions.users.first());
@@ -33,8 +33,32 @@ bot.on("message", async message=>{
       const embed = new MessageEmbed()
       .setColor(0x00A2E8)
       .addField("Username set successfully!", "**" + newusername + "**" + " is now the nickname for " + "**" + user.user.username + "**" + ":white_check_mark:");
-      message.reply(embed).catch(console.error);
+      message.channel.send(embed).catch(console.error);
     }
-  
+  if(cmd === `${bot.prefix}kick`) { //kick command
+       if(!message.member.hasPermission("ADMINISTRATOR")) return message.channel.send('You dont have permission to perform this command!');
+      let user = message.mentions.members.first()
+      if(!user) return message.reply("You must ping someone to kick")
+      if (user.roles.highest.position >= message.member.roles.highest.position ) return message.reply('I cant kick this member! This member has a highest role from you.')
+      if(message.author.id === user.id) {
+      return message.channel.send("You cant kick yourself.")
+      }
+       if(user.id === message.guild.owner.id) {
+  return message.channel.send("You cant kick the owner")
+  }
+      user.kick().then((user) => {
+            message.channel.send(`[**${user.user.tag}**] has been successfully kicked            https://imgur.com/R7cWSOl `);
+        }).catch(() => {
+            message.channel.send("I dont have permissions to do this command");
+        });
+      let kicklogschannel = message.guild.channels.cache.get("logs_channel_id")//you must put your logs channel id
+      let kicklogs = new MessageEmbed()
+      .setTitle("Member Kicked")
+      .addField("Moderator:", message.author.tag)
+      .addField("Kicked Member:", user.user.tag)
+      .addField("Date:", message.createdAt.toLocaleString())
+      .setFooter("Kick Logs")
+      kicklogschannel.send(kicklogs)
+  }
   });
   bot.login("token")
